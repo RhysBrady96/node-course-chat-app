@@ -38,14 +38,34 @@ io.on("connection", (socket) => {
     //     createdAt : 123
     // });
 
+    socket.emit("newMessage", {
+        from: "Admin",
+        text: "welcome to the chat",
+        createdAt : new Date().getTime()
+    });
+
+    socket.broadcast.emit("newMessage", {
+        from: "Admin",
+        text: "new User joined the chat",
+        createdAt : new Date().getTime()
+    });
+
     socket.on("createMessage", (newMessage) => {
         console.log("created Messsage : " , newMessage);
         // io.emit sends a message to EVERY CONNECTION!
-        io.emit("newMessage", {
-            from : newMessage.from,
+        // io.emit("newMessage", {
+        //     from : newMessage.from,
+        //     text: newMessage.text,
+        //     createdAt : new Date().getTime()
+        // })
+
+        // Broadcasting: Emitting an event to everyone but 1 specific user, for below, it sends
+        // to everyone but yourself
+        socket.broadcast.emit("newMessage", {
+            from: newMessage.from,
             text: newMessage.text,
             createdAt : new Date().getTime()
-        })
+        });
     });
 
     socket.on("disconnect", (socket) => {
@@ -54,7 +74,6 @@ io.on("connection", (socket) => {
     
 
 });
-
 
 
 // app.get("/", (req, res) => {
