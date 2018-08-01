@@ -29,9 +29,21 @@ app.use(express.static(clientPath));
 io.on("connection", (socket) => {
     console.log("new user connected");
 
+    // emit takes the name of the event we want the client to handle
+    // As well as the data we want to send, in this case we're sending an object
+    socket.emit("newMessage", {
+        from: "Steve",
+        text : "I like chips",
+        createdAt : 123
+    });
+
+    socket.on("createMessage", (newMessage) => {
+        console.log("created Messsage : " , newMessage);
+    });
+
     socket.on("disconnect", (socket) => {
         console.log("The client has disconnected");
-    })
+    });
     
 
 });
