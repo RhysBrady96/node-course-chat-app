@@ -29,16 +29,23 @@ app.use(express.static(clientPath));
 io.on("connection", (socket) => {
     console.log("new user connected");
 
-    // emit takes the name of the event we want the client to handle
-    // As well as the data we want to send, in this case we're sending an object
-    socket.emit("newMessage", {
-        from: "Steve",
-        text : "I like chips",
-        createdAt : 123
-    });
+    // // emit takes the name of the event we want the client to handle
+    // // As well as the data we want to send, in this case we're sending an object
+    // // socket.emit sends a message only to a single connection
+    // socket.emit("newMessage", {
+    //     from: "Steve",
+    //     text : "I like chips",
+    //     createdAt : 123
+    // });
 
     socket.on("createMessage", (newMessage) => {
         console.log("created Messsage : " , newMessage);
+        // io.emit sends a message to EVERY CONNECTION!
+        io.emit("newMessage", {
+            from : newMessage.from,
+            text: newMessage.text,
+            createdAt : new Date().getTime()
+        })
     });
 
     socket.on("disconnect", (socket) => {
