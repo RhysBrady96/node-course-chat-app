@@ -25,6 +25,17 @@
         jQuery("#messages").append(li);
     });
 
+
+    socket.on("newLocationMessage", function (data) {
+        var li = jQuery("<li></li>")
+        // target=_blank opens the link in a new tab rather than redirecting the current one
+        var a = jQuery("<a target=\"_blank\">My current location</a>")
+        li.text(`${data.from} : `);
+        a.attr("href", data.url);
+        li.append(a);
+        jQuery("#messages").append(li);
+    });
+
     // // Parameters: 1. eventName
     // // 2. data to send
     // // 3. Callback resulting from an acknowlegment from the server
@@ -45,4 +56,26 @@
         }, function () {
 
         });
-    })
+    });
+
+    // This does actually save a good amount of time, means you dont have to expensively look
+    // throught the DOM
+    var locationButton = jQuery("#send-location");
+
+    locationButton.on(("click") , function () {
+        if(!navigator.geolocation) {
+            return alert("Geolocation is not supported on this browser");
+        }
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                socket.emit("createLocationMessage", {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                });
+            },
+            function () {
+                alert("Unable to fetch location");
+            }
+        );
+
+    });
