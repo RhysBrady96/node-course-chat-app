@@ -46,19 +46,18 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("newMessage", 
         generateMessage("Admin", "New user joined the chat"));
 
-    socket.on("createMessage", (newMessage) => {
+    // callback is used for acknowledgements, as it sends an event back to the client
+    socket.on("createMessage", (newMessage, callback) => {
         console.log("created Messsage : " , newMessage);
         // io.emit sends a message to EVERY CONNECTION!
-        // io.emit("newMessage", {
-        //     from : newMessage.from,
-        //     text: newMessage.text,
-        //     createdAt : new Date().getTime()
-        // })
+        io.emit("newMessage", generateMessage(newMessage.from, newMessage.text));
 
-        // Broadcasting: Emitting an event to everyone but 1 specific user, for below, it sends
-        // to everyone but yourself
-        socket.broadcast.emit("newMessage",
-            generateMessage(newMessage.from, newMessage.text));
+        callback("This is from the server");
+
+        // // Broadcasting: Emitting an event to everyone but 1 specific user, for below, it sends
+        // // to everyone but yourself
+        // socket.broadcast.emit("newMessage",
+        //     generateMessage(newMessage.from, newMessage.text));
     });
 
     socket.on("disconnect", (socket) => {
