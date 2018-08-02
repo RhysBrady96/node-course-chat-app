@@ -18,19 +18,22 @@
     // When the server emits a "message" event, we handle it here and we expect the server to have
     // also sent some "data"
     socket.on("newMessage", function (data) {
-        console.log("New Message: ", data);
+
+        var formattedTime = moment(data.createdAt).format("h:mm a");
         var li = jQuery("<li></li>");
-        li.text(`${data.from}: ${data.text}`);
+        li.text(`${data.from} ${formattedTime}: ${data.text}`);
 
         jQuery("#messages").append(li);
     });
 
 
     socket.on("newLocationMessage", function (data) {
+
+        var formattedTime = moment(data.createdAt).format("h:mm a");
         var li = jQuery("<li></li>")
         // target=_blank opens the link in a new tab rather than redirecting the current one
         var a = jQuery("<a target=\"_blank\">My current location</a>")
-        li.text(`${data.from} : `);
+        li.text(`${data.from} ${formattedTime}: `);
         a.attr("href", data.url);
         li.append(a);
         jQuery("#messages").append(li);
