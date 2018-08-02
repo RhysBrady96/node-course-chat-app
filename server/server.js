@@ -52,7 +52,7 @@ io.on("connection", (socket) => {
         // io.emit sends a message to EVERY CONNECTION!
         io.emit("newMessage", generateMessage(newMessage.from, newMessage.text));
 
-        callback("This is from the server");
+        callback();
 
         // // Broadcasting: Emitting an event to everyone but 1 specific user, for below, it sends
         // // to everyone but yourself
