@@ -19,24 +19,45 @@
     // also sent some "data"
     socket.on("newMessage", function (data) {
 
-        var formattedTime = moment(data.createdAt).format("h:mm a");
-        var li = jQuery("<li></li>");
-        li.text(`${data.from} ${formattedTime}: ${data.text}`);
 
-        jQuery("#messages").append(li);
+        var template = jQuery("#message-template").html();
+        var formattedTime = moment(data.createdAt).format("h:mm a");
+        // mustache.render takes the template you wanna render
+        // An an object of values to inject (like the {{text}} template in index.html)
+        var html = Mustache.render(template, {
+            text : data.text,
+            from: data.from,
+            createdAt: formattedTime
+        });
+
+        jQuery("#messages").append(html);
+
+        // var li = jQuery("<li></li>");
+        // li.text(`${data.from} ${formattedTime}: ${data.text}`);
+        // jQuery("#messages").append(li);
     });
 
 
     socket.on("newLocationMessage", function (data) {
 
         var formattedTime = moment(data.createdAt).format("h:mm a");
-        var li = jQuery("<li></li>")
-        // target=_blank opens the link in a new tab rather than redirecting the current one
-        var a = jQuery("<a target=\"_blank\">My current location</a>")
-        li.text(`${data.from} ${formattedTime}: `);
-        a.attr("href", data.url);
-        li.append(a);
-        jQuery("#messages").append(li);
+        
+        var template = jQuery("#location-message-template").html();
+        var html = Mustache.render(template, {
+            from: data.from,
+            createdAt: formattedTime,
+            url: data.url
+        });
+        jQuery("#messages").append(html);        
+        
+        
+        // var li = jQuery("<li></li>")
+        // // target=_blank opens the link in a new tab rather than redirecting the current one
+        // var a = jQuery("<a target=\"_blank\">My current location</a>")
+        // li.text(`${data.from} ${formattedTime}: `);
+        // a.attr("href", data.url);
+        // li.append(a);
+        // jQuery("#messages").append(li);
     });
 
     // // Parameters: 1. eventName
