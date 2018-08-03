@@ -7,6 +7,8 @@ const socketIO = require("socket.io");
 const http = require("http");
 
 const {generateMessage, generateLocationMessage} = require("./utils/message");
+const {isRealString} = require("./utils/validation");
+const {Users} = require("./utils/users");
 
 const clientPath = path.join(__dirname, "/../client");
 const port = process.env.PORT || 3000;
@@ -22,6 +24,7 @@ var app = express();
 var server = http.createServer(app);
 // Now we have a web socket server
 var io = socketIO(server);
+var chatMembers = new Users();
 
 // use serves up middleware, and express.static is built in middleware that allows use to serve up
 // static files like html, css, and javascript
@@ -40,11 +43,32 @@ io.on("connection", (socket) => {
     //     createdAt : 123
     // });
 
-    socket.emit("newMessage", 
-        generateMessage("Admin", "Welcome to the chat app"));
+    socket.on("join", (params, callback) => {
+        
+        if(!isRealString(params.name) || !isRealString(params.room)) {
+            callback("Name and room name required");
+        }
+        // Creates groups which you can identify
+        socket.join(params.room);
+        // after joining one chat it removes the user from other rooms
+        chatMembers.removeUser(socket.io);
+        // socket.id is just a unique identifier for each socket on the open port
+        chatMembers.addUser(socket.id, params.name, params.room);
 
-    socket.broadcast.emit("newMessage", 
-        generateMessage("Admin", "New user joined the chat"));
+        io.to(params.room).emit("updateUserList", chatMembers.getUserList(params.room));
+
+        socket.emit("newMessage", 
+            generateMessage("Admin", "Welcome to the chat app"));
+
+        socket.broadcast.to(params.room).emit("newMessage", 
+            generateMessage("Admin", `${params.name} has joined the chat`));
+        
+        // socket.leave(params.room) <--- also a function
+        // io.emit -> io.to(params.room).emit <---- sends a message to everyone in a certain group
+        // socket.broadcast.emit -> socket.broadcast.to(params.room).emit <---- sends to everyone EXCEPT the one that is broadcasting
+
+        callback();
+    })
 
     // callback is used for acknowledgements, as it sends an event back to the client
     socket.on("createMessage", (newMessage, callback) => {
@@ -64,9 +88,15 @@ io.on("connection", (socket) => {
         io.emit("newLocationMessage", generateLocationMessage("Admin", coords.latitude, coords.longitude));
     })
 
-    socket.on("disconnect", (socket) => {
-        console.log("The client has disconnected");
+    socket.on("disconnect", () => {
+        var user = chatMembers.removeUser(socket.id);
+
+        if(user) {
+            io.to(user.room).emit("updateUserList", chatMembers.getUserList(user.room));
+            io.to(user.room).emit("newMesssage", generateMessage("Admin", `${user.name} has left`));
+        }
     });
+
     
 
 });
