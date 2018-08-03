@@ -1,6 +1,23 @@
 // Try to not use ES6 in client side, because some browsers and devices cant run it
     var socket = io();
 
+    function scrollToBottom () {
+        // Selectors
+        var messages = jQuery("#messages");
+        // i.e. the last message in the list
+        var newMessage = messages.children("li:last-child");
+        // Heights
+        var clientHeight = messages.prop("clientHeight");
+        var scrollTop = messages.prop("scrollTop");
+        var scrollHeight = messages.prop("scrollHeight");
+        var newMessageHeight = newMessage.innerHeight();
+        var lastMessageHeight = newMessage.prev().innerHeight();
+
+        if(clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight) {
+            messages.scrollTop(scrollHeight);
+        }
+    }
+
 
     socket.on("connect", function ()  {
         console.log("connected to server");
@@ -32,6 +49,8 @@
 
         jQuery("#messages").append(html);
 
+        scrollToBottom();
+
         // var li = jQuery("<li></li>");
         // li.text(`${data.from} ${formattedTime}: ${data.text}`);
         // jQuery("#messages").append(li);
@@ -48,7 +67,9 @@
             createdAt: formattedTime,
             url: data.url
         });
-        jQuery("#messages").append(html);        
+        jQuery("#messages").append(html);   
+        
+        scrollToBottom();
         
         
         // var li = jQuery("<li></li>")
