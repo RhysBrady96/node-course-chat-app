@@ -72,9 +72,12 @@ io.on("connection", (socket) => {
 
     // callback is used for acknowledgements, as it sends an event back to the client
     socket.on("createMessage", (newMessage, callback) => {
-        console.log("created Messsage : " , newMessage);
-        // io.emit sends a message to EVERY CONNECTION!
-        io.emit("newMessage", generateMessage(newMessage.from, newMessage.text));
+        var user = chatMembers.getUser(socket.id);
+        if (user && isRealString(newMessage.text)) {
+            // io.emit sends a message to EVERY CONNECTION!
+            io.to(user.room).emit("newMessage", generateMessage(user.name, newMessage.text));
+        }
+        
 
         callback();
 
@@ -85,7 +88,12 @@ io.on("connection", (socket) => {
     });
 
     socket.on("createLocationMessage", (coords) => {
-        io.emit("newLocationMessage", generateLocationMessage("Admin", coords.latitude, coords.longitude));
+
+        var user = chatMembers.getUser(socket.id);
+        if(user) {
+            io.to(user.room).emit("newLocationMessage"
+                    , generateLocationMessage(user.name, coords.latitude, coords.longitude));
+        }
     })
 
     socket.on("disconnect", () => {
@@ -93,7 +101,7 @@ io.on("connection", (socket) => {
 
         if(user) {
             io.to(user.room).emit("updateUserList", chatMembers.getUserList(user.room));
-            io.to(user.room).emit("newMesssage", generateMessage("Admin", `${user.name} has left`));
+            io.to(user.room).emit("newMessage", generateMessage("Admin", `${user.name} has left`));
         }
     });
 
